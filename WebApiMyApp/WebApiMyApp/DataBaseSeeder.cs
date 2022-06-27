@@ -1,4 +1,7 @@
-﻿using Infrastructure.Data;
+﻿using Entities;
+using Infrastructure.Constants;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApiMyApp
@@ -12,6 +15,35 @@ namespace WebApiMyApp
             {
                 var context = scope.ServiceProvider.GetRequiredService<AppEFContext>();
                 context.Database.Migrate();
+
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                if(!roleManager.Roles.Any())
+                {
+                    var result = roleManager.CreateAsync(new IdentityRole
+                    {
+                        Name = Roles.Admin
+                    }).Result;
+                    result = roleManager.CreateAsync(new IdentityRole
+                    {
+                        Name = Roles.User
+                    }).Result;
+                }
+                if(!userManager.Users.Any())
+                {
+                    string email = "admin@mail.com";
+                    var user = new ApplicationUser
+                    {
+                        Email = email,
+                        UserName = email,
+                        Image = "1.jpg",
+                        FirstName = "Max",
+                        LastName = "Dod"
+
+                    };
+                    var result = userManager.CreateAsync(user).Result;
+                    result = userManager.AddToRoleAsync(user, Roles.Admin).Result;
+                }
             }
         }
     }
