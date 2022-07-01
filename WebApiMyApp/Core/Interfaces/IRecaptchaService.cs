@@ -1,5 +1,4 @@
-﻿using Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Core.Interfaces
 {
-    public interface IJwtService
+    public interface IRecaptchaService
     {
-        string CreateToken(ApplicationUser user);
-        
+        bool IsValid(string recapychaToken);
     }
+    
 }

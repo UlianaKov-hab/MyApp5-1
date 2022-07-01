@@ -3,6 +3,13 @@ using Infrastructure;
 using WebApiMyApp;
 using Entities;
 using Microsoft.AspNetCore.Identity;
+using Core.Mapper;
+using FluentValidation.AspNetCore;
+using Core.Validators;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
+using Core.Interfaces;
+using Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,15 +25,28 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
 }).AddEntityFrameworkStores<AppEFContext>().AddDefaultTokenProviders();
-    
+
+builder.Services.AddAutoMapper(typeof(AppMaperProfile));
+builder.Services.AddFluentValidation(x =>
+    x.RegisterValidatorsFromAssemblyContaining<ValidatorRegisterUserDTO>());
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+        options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Include;
+        options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IRecaptchaService, RecaptchaService>();
+builder.Services.AddCors();
 
 var app = builder.Build();
+
+app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
